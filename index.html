@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SELLLOG 뉴스레터 자동 변환기</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      background: #f5f7fb;
+      color: #111827;
+      font-family: Pretendard, Arial, sans-serif;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .desc { margin: 0 0 22px; color: #64748b; line-height: 1.6; }
+    .notice {
+      margin-bottom: 18px;
+      padding: 15px 17px;
+      border: 1px solid #dbeafe;
+      border-radius: 13px;
+      background: #eff6ff;
+      color: #1e40af;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .panel {
+      margin-bottom: 16px;
+      padding: 18px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+    label { display: block; margin-bottom: 10px; font-size: 15px; font-weight: 700; }
+    textarea, input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      outline: none;
+    }
+    textarea { min-height: 360px; resize: vertical; }
+    textarea:focus, input:focus {
+      border-color: #2890ff;
+      box-shadow: 0 0 0 3px rgba(40, 144, 255, 0.12);
+    }
+    .result textarea { min-height: 470px; background: #fbfdff; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .primary { background: #2890ff; color: #fff; }
+    .secondary { background: #e8eef6; color: #1e293b; }
+    .status { min-height: 24px; margin: 4px 0 14px; font-size: 14px; font-weight: 700; line-height: 1.6; }
+    .success { color: #15803d; }
+    .error { color: #dc2626; }
+    .warning { color: #b45309; }
+    details {
+      margin-top: 16px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 14px;
+    }
+    summary { cursor: pointer; color: #475569; font-size: 14px; font-weight: 700; }
+    .settings {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .small { margin: 8px 0 0; color: #64748b; font-size: 13px; line-height: 1.6; }
+    .preview {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.65;
+      white-space: pre-line;
+    }
+    @media (max-width: 720px) {
+      body { padding: 18px; }
+      h1 { font-size: 23px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>SELLLOG 뉴스레터 자동 변환기</h1>
+    <p class="desc">DM HTML 한 번만 붙여넣으면 콘텐츠 개수에 맞춰 파트너센터용 캐러셀 HTML을 새로 생성합니다.</p>
+
+    <div class="notice">
+      <strong>자동 처리</strong><br>
+      · 첫 번째 월간 이미지는 표지로 사용<br>
+      · 이후 이미지를 2장씩 묶어 콘텐츠 1개로 생성<br>
+      · 콘텐츠 수가 줄면 블록도 자동 삭제, 늘면 자동 추가<br>
+      · 제목은 첫 이미지의 alt, 링크는 두 번째 이미지의 링크에서 추출<br>
+      · 채널 영역과 마지막 설문 영역은 고정 유지
+    </div>
+
+    <div class="panel">
+      <label for="sourceHtml">1. 새로 퍼블리싱된 DM 전체 HTML</label>
+      <textarea id="sourceHtml" placeholder="메일용 전체 HTML을 그대로 붙여넣으세요."></textarea>
+
+      <div class="actions">
+        <button type="button" class="primary" id="convertBtn">파트너센터 HTML 자동 생성</button>
+        <button type="button" class="secondary" id="clearBtn">전체 비우기</button>
+      </div>
+
+      <details>
+        <summary>고정 영역 설정</summary>
+        <p class="small">채널 이미지나 마지막 설문 이미지·링크가 바뀔 때만 수정하세요.</p>
+        <div class="settings">
+          <label>채널 통합 이미지 주소
+            <input id="channelImage" value="https://cdn.imweb.me/thumbnail/20260623/ff2cef5d8c570.png">
+          </label>
+          <label>마지막 설문 이미지 주소
+            <input id="surveyImage" value="http://image.gmarket.co.kr/Gmkt_Event/2026/07/2607_ebayedu_DM/2607_newsletter_DM_m_16.jpg">
+          </label>
+          <label>마지막 설문 링크
+            <input id="surveyLink" value="https://m.site.naver.com/23idP">
+          </label>
+          <label>마지막 설문 제목
+            <input id="surveyTitle" value="설문참여">
+          </label>
+        </div>
+      </details>
+    </div>
+
+    <div id="status" class="status"></div>
+    <div id="preview" class="preview" style="display:none;"></div>
+
+    <div class="panel result">
+      <label for="resultHtml">2. 완성된 파트너센터 HTML</label>
+      <textarea id="resultHtml" readonly placeholder="생성 결과가 여기에 표시됩니다."></textarea>
+      <div class="actions">
+        <button type="button" class="primary" id="copyBtn">결과 전체 복사</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sourceHtml = document.getElementById('sourceHtml');
+    const resultHtml = document.getElementById('resultHtml');
+    const statusBox = document.getElementById('status');
+    const previewBox = document.getElementById('preview');
+
+    function escapeAttr(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function normalizeTitle(text) {
+      return String(text || '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function getImageNumber(url) {
+      const clean = String(url || '').split(/[?#]/)[0];
+      const file = clean.substring(clean.lastIndexOf('/') + 1);
+      const match = file.match(/_(\d{2})\.(jpg|jpeg|png|webp|gif)$/i);
+      return match ? Number(match[1]) : null;
+    }
+
+    function getAncestorLink(img) {
+      const anchor = img.closest('a');
+      return anchor ? (anchor.getAttribute('href') || '').trim() : '';
+    }
+
+    function isSurveyImage(img) {
+      const alt = (img.getAttribute('alt') || '').toLowerCase();
+      const link = getAncestorLink(img).toLowerCase();
+
+      return (
+        alt.includes('설문') ||
+        alt.includes('만족도') ||
+        link.includes('23idp') ||
+        link.includes('survey')
+      );
+    }
+
+    function extractMonthlyImages(html) {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const items = [];
+
+      doc.querySelectorAll('img[src]').forEach(function(img) {
+        const src = (img.getAttribute('src') || '').trim();
+        const number = getImageNumber(src);
+
+        if (number === null) return;
+
+        items.push({
+          src: src,
+          number: number,
+          alt: normalizeTitle(img.getAttribute('alt')),
+          link: getAncestorLink(img),
+          survey: isSurveyImage(img)
+        });
+      });
+
+      items.sort(function(a, b) {
+        return a.number - b.number;
+      });
+
+      return items;
+    }
+
+    function buildChannelBlock(channelImage) {
+      return `
+		<div style="position:relative; width:100%; max-width:700px; margin:0 auto;"><img src="${escapeAttr(channelImage)}" class="fr-fic fr-dii">
+			<a href="https://www.youtube.com/@gmarket_edu" target="_blank" style="position:absolute; left:0%; top:0; width:33.33%; height:100%; display:block;"></a>
+			<a href="https://pf.kakao.com/_xdxnxbSb" target="_blank" style="position:absolute; left:33.33%; top:0; width:33.33%; height:100%; display:block;"></a>
+			<a href="https://partner.gmarket.com/" target="_blank" style="position:absolute; left:66.66%; top:0; width:33.34%; height:100%; display:block;"></a></div>`;
+    }
+
+    function buildContentBlock(index, first, second) {
+      const number = String(index).padStart(2, '0');
+      const titleText = first.alt || ('콘텐츠 ' + number);
+      const dataTitle = number + ' ' + titleText;
+
+      let html = `
+		<div data-title="${escapeAttr(dataTitle)}"><img src="${escapeAttr(first.src)}" class="fr-fic fr-dii">`;
+
+      if (second) {
+        if (second.link) {
+          html += `
+		<a href="${escapeAttr(second.link)}" target="_blank"><img src="${escapeAttr(second.src)}" class="fr-fic fr-dii"></a>`;
+        } else {
+          html += `
+		<img src="${escapeAttr(second.src)}" class="fr-fic fr-dii">`;
+        }
+      }
+
+      html += `</div>`;
+      return html;
+    }
+
+    function buildSurveyBlock() {
+      const image = document.getElementById('surveyImage').value.trim();
+      const link = document.getElementById('surveyLink').value.trim();
+      const title = document.getElementById('surveyTitle').value.trim() || '설문참여';
+
+      return `
+		<div data-title="${escapeAttr(title)}">
+		<a href="${escapeAttr(link)}" target="_blank"><img src="${escapeAttr(image)}" class="fr-fic fr-dii"></a></div>`;
+    }
+
+    function convert() {
+      resultHtml.value = '';
+      statusBox.className = 'status';
+      previewBox.style.display = 'none';
+
+      const source = sourceHtml.value.trim();
+
+      if (!source) {
+        statusBox.textContent = '새 DM HTML을 붙여넣어 주세요.';
+        statusBox.classList.add('error');
+        return;
+      }
+
+      const allMonthly = extractMonthlyImages(source);
+
+      if (allMonthly.length < 3) {
+        statusBox.textContent = '월간 이미지 번호가 붙은 이미지를 충분히 찾지 못했습니다.';
+        statusBox.classList.add('error');
+        return;
+      }
+
+      const cover = allMonthly[0];
+      const detectedSurvey = allMonthly.find(function(item) { return item.survey; });
+      const bodyImages = allMonthly.filter(function(item, index) {
+        if (index === 0) return false;
+        if (detectedSurvey && item.src === detectedSurvey.src) return false;
+        return true;
+      });
+
+      const contentGroups = [];
+      for (let i = 0; i < bodyImages.length; i += 2) {
+        contentGroups.push([bodyImages[i], bodyImages[i + 1] || null]);
+      }
+
+      const channelImage = document.getElementById('channelImage').value.trim();
+
+      let output = `<div class="sellog-carousel-post" data-color="#00C853">
+
+	<div><img src="${escapeAttr(cover.src)}" class="fr-fic fr-dii">${buildChannelBlock(channelImage)}</div>`;
+
+      contentGroups.forEach(function(group, index) {
+        output += `
+	${buildContentBlock(index + 1, group[0], group[1])}`;
+      });
+
+      output += `
+	${buildSurveyBlock()}</div>
+
+<p>
+	<br>
+</p>
+
+<p>
+	<br>
+</p>
+
+<p>
+	<br>
+</p>`;
+
+      resultHtml.value = output;
+
+      const oddWarning = bodyImages.length % 2 !== 0
+        ? ' 마지막 콘텐츠는 이미지 1장짜리로 생성했습니다.'
+        : '';
+
+      statusBox.textContent =
+        '콘텐츠 ' + contentGroups.length + '개를 자동 생성했습니다.' +
+        oddWarning;
+      statusBox.classList.add(bodyImages.length % 2 !== 0 ? 'warning' : 'success');
+
+      const lines = contentGroups.map(function(group, index) {
+        const title = group[0].alt || ('콘텐츠 ' + (index + 1));
+        return (index + 1) + '. ' + title + (group[1] && group[1].link ? ' · 링크 있음' : ' · 링크 없음');
+      });
+
+      previewBox.textContent =
+        '인식 결과\n' +
+        '표지: ' + (cover.alt || cover.src) + '\n' +
+        lines.join('\n') + '\n' +
+        '마지막 설문: 고정 영역 사용';
+      previewBox.style.display = 'block';
+    }
+
+    async function copyResult() {
+      if (!resultHtml.value) {
+        statusBox.textContent = '먼저 파트너센터 HTML을 생성해 주세요.';
+        statusBox.className = 'status error';
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(resultHtml.value);
+      } catch (error) {
+        resultHtml.select();
+        document.execCommand('copy');
+      }
+
+      statusBox.textContent = '완성된 HTML 전체를 복사했습니다.';
+      statusBox.className = 'status success';
+    }
+
+    document.getElementById('convertBtn').addEventListener('click', convert);
+    document.getElementById('copyBtn').addEventListener('click', copyResult);
+    document.getElementById('clearBtn').addEventListener('click', function() {
+      sourceHtml.value = '';
+      resultHtml.value = '';
+      statusBox.textContent = '';
+      statusBox.className = 'status';
+      previewBox.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
