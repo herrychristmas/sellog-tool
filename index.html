@@ -43,23 +43,23 @@
 <body>
 <main class="app">
   <header class="hero">
-    <div><div class="eyebrow">SELLLOG WORK TOOL</div><h1>뉴스레터 자동 생성기</h1><p>DM HTML과 파트너센터용 썸네일 주소를 넣으면<br>캐러셀 HTML을 자동으로 생성합니다.</p></div>
-    <div class="version">v2.1</div>
+    <div><div class="eyebrow">SELLLOG WORK TOOL</div><h1>뉴스레터 자동 생성기</h1><p>DM HTML과 파트너센터용 표지 이미지 주소를 넣으면<br>캐러셀 HTML을 자동으로 생성합니다.</p></div>
+    <div class="version">v2.2</div>
   </header>
   <section class="layout">
     <div>
       <article class="card">
-        <div class="card-head"><div class="title-row"><div class="step">1</div><div><div class="card-title">DM HTML + 썸네일 불러오기</div><div class="card-sub">뉴스레터 본문과 파트너센터용 썸네일을 함께 입력하세요.</div></div></div></div>
+        <div class="card-head"><div class="title-row"><div class="step">1</div><div><div class="card-title">DM HTML + 표지 이미지 불러오기</div><div class="card-sub">뉴스레터 본문과 파트너센터용 표지 이미지 주소 1개를 입력하세요.</div></div></div></div>
         <div class="card-body">
           <div class="dropzone" id="dropzone"><div class="drop-icon">↥</div><strong>DM HTML 파일을 여기에 드래그</strong><span>또는 클릭해서 .html / .htm 파일 선택</span><input id="fileInput" type="file" accept=".html,.htm,text/html"></div>
           <div class="or">또는 직접 붙여넣기</div>
           <textarea id="sourceHtml" placeholder="뉴스레터용 전체 HTML을 그대로 붙여넣으세요."></textarea>
 
           <div class="thumb-box">
-            <label for="thumbnailUrls">파트너센터용 썸네일 이미지 주소</label>
-            <p>콘텐츠 순서대로 한 줄에 하나씩 입력하세요. 각 콘텐츠의 첫 번째 뉴스레터 이미지를 이 주소로 교체합니다.</p>
-            <textarea id="thumbnailUrls" placeholder="https://.../thumbnail01.png&#10;https://.../thumbnail02.png&#10;https://.../thumbnail03.png"></textarea>
-            <div class="counter" id="thumbCount">입력 썸네일 0개</div>
+            <label for="thumbnailUrls">파트너센터용 표지 이미지 주소</label>
+            <p>DM HTML의 맨 앞 표지만 아래 주소로 교체합니다. 나머지 콘텐츠 이미지와 링크는 그대로 유지됩니다.</p>
+            <input id="thumbnailUrls" type="url" placeholder="https://.../partnercenter-cover.png" style="width:100%;padding:13px 14px;border:1px solid #d0d5dd;border-radius:12px;outline:none;background:#fff;">
+            <div class="counter" id="thumbCount">표지 주소 미입력</div>
           </div>
 
           <div class="actions"><button class="btn btn-primary" id="generateBtn">자동 생성</button><button class="btn btn-soft" id="clearBtn">전체 비우기</button></div>
@@ -82,11 +82,11 @@
     </div>
 
     <aside class="card">
-      <div class="card-head"><div><div class="card-title">분석 결과 & 미리보기</div><div class="card-sub">썸네일 매칭과 누락 여부를 확인하세요.</div></div></div>
+      <div class="card-head"><div><div class="card-title">분석 결과 & 미리보기</div><div class="card-sub">표지 교체 여부와 콘텐츠 인식 결과를 확인하세요.</div></div></div>
       <div class="card-body">
-        <div class="status-grid"><div class="metric"><div class="metric-label">인식 콘텐츠</div><div class="metric-value" id="contentCount">0개</div></div><div class="metric"><div class="metric-label">입력 썸네일</div><div class="metric-value" id="imageCount">0개</div></div><div class="metric"><div class="metric-label">점검 상태</div><div class="metric-value" id="checkState">대기</div></div></div>
+        <div class="status-grid"><div class="metric"><div class="metric-label">인식 콘텐츠</div><div class="metric-value" id="contentCount">0개</div></div><div class="metric"><div class="metric-label">표지 이미지</div><div class="metric-value" id="imageCount">0개</div></div><div class="metric"><div class="metric-label">점검 상태</div><div class="metric-value" id="checkState">대기</div></div></div>
         <div id="message" class="message"></div>
-        <div class="preview-wrap"><div class="preview-toolbar"><span>콘텐츠 미리보기</span><span id="fileNameLabel">파일 없음</span></div><div id="preview" class="preview"><div class="empty">DM HTML과 썸네일 주소를 넣은 뒤<br><strong>자동 생성</strong>을 눌러주세요.</div></div></div>
+        <div class="preview-wrap"><div class="preview-toolbar"><span>콘텐츠 미리보기</span><span id="fileNameLabel">파일 없음</span></div><div id="preview" class="preview"><div class="empty">DM HTML과 표지 주소를 넣은 뒤<br><strong>자동 생성</strong>을 눌러주세요.</div></div></div>
       </div>
     </aside>
   </section>
@@ -101,7 +101,7 @@ function esc(v){return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'
 function normalize(v){return String(v||'').replace(/\s+/g,' ').trim()}
 function getNum(url){const f=String(url||'').split(/[?#]/)[0].split('/').pop();const m=f.match(/_(\d{2})\.(jpg|jpeg|png|webp|gif)$/i);return m?Number(m[1]):null}
 function linkOf(img){const a=img.closest('a');return a?(a.getAttribute('href')||'').trim():''}
-function thumbList(){return els.thumbnailUrls.value.split(/\r?\n/).map(v=>v.trim()).filter(v=>/^https?:\/\//i.test(v))}
+function coverUrl(){const v=els.thumbnailUrls.value.trim();return /^https?:\/\//i.test(v)?v:''}
 function parseSource(html){
   const doc=new DOMParser().parseFromString(html,'text/html'),monthly=[];
   doc.querySelectorAll('img[src]').forEach(img=>{const src=(img.getAttribute('src')||'').trim(),number=getNum(src);if(number===null)return;monthly.push({src,number,alt:normalize(img.getAttribute('alt')),link:linkOf(img),survey:/설문|만족도|survey|23idp/i.test((img.getAttribute('alt')||'')+' '+linkOf(img))})});
@@ -116,33 +116,34 @@ function contentBlock(i,group,thumb){
 }
 function setMetrics(c,t,s,cl=''){els.contentCount.textContent=c+'개';els.imageCount.textContent=t+'개';els.checkState.textContent=s;els.checkState.className='metric-value '+cl}
 function show(type,msg){els.message.className='message show '+type;els.message.innerHTML=msg}
-function render(groups,thumbs){
-  els.preview.innerHTML=groups.map((g,i)=>`<div class="preview-card"><img src="${esc(thumbs[i]||g[0].src)}"><div class="preview-label">${String(i+1).padStart(2,'0')} · ${thumbs[i]?'별도 썸네일 적용':'DM 이미지 임시 사용'}</div>${g[1]?`<img src="${esc(g[1].src)}">`:''}</div>`).join('');
+function render(cover,groups){
+  let html=`<div class="preview-card"><img src="${esc(cover)}"><div class="preview-label">표지 · 별도 이미지 적용</div></div>`;
+  html+=groups.map((g,i)=>`<div class="preview-card"><img src="${esc(g[0].src)}"><div class="preview-label">${String(i+1).padStart(2,'0')} · DM 콘텐츠 그대로 사용</div>${g[1]?`<img src="${esc(g[1].src)}">`:''}</div>`).join('');
+  els.preview.innerHTML=html;
 }
 function generate(){
-  const source=els.sourceHtml.value.trim(),thumbs=thumbList();
-  if(!source){show('bad','DM HTML을 먼저 넣어 주세요.');setMetrics(0,thumbs.length,'오류','bad');return}
+  const source=els.sourceHtml.value.trim(),newCover=coverUrl();
+  if(!source){show('bad','DM HTML을 먼저 넣어 주세요.');setMetrics(0,newCover?1:0,'오류','bad');return}
+  if(!newCover){show('bad','파트너센터용 표지 이미지 주소 1개를 입력해 주세요.');setMetrics(0,0,'오류','bad');return}
   const monthly=parseSource(source);
-  if(monthly.length<3){show('bad','파일명 끝에 _01, _02처럼 번호가 붙은 이미지를 충분히 찾지 못했습니다.');setMetrics(0,thumbs.length,'오류','bad');return}
-  const cover=monthly[0],survey=monthly.find(x=>x.survey),body=monthly.filter((x,i)=>i!==0&&(!survey||x.src!==survey.src)),groups=[];
+  if(monthly.length<3){show('bad','파일명 끝에 _01, _02처럼 번호가 붙은 이미지를 충분히 찾지 못했습니다.');setMetrics(0,1,'오류','bad');return}
+  const originalCover=monthly[0],survey=monthly.find(x=>x.survey),body=monthly.filter((x,i)=>i!==0&&(!survey||x.src!==survey.src)),groups=[];
   for(let i=0;i<body.length;i+=2)groups.push([body[i],body[i+1]||null]);
-  let out=`<div class="sellog-carousel-post" data-color="#00C853">\n\n<div><img src="${esc(cover.src)}" class="fr-fic fr-dii">${channelBlock()}</div>`;
-  groups.forEach((g,i)=>out+=`\n${contentBlock(i+1,g,thumbs[i])}`);
+  let out=`<div class="sellog-carousel-post" data-color="#00C853">\n\n<div><img src="${esc(newCover)}" class="fr-fic fr-dii">${channelBlock()}</div>`;
+  groups.forEach((g,i)=>out+=`\n${contentBlock(i+1,g,'')}`);
   out+=`\n<div data-title="${esc(els.surveyTitle.value.trim()||'설문참여')}"><a href="${esc(els.surveyLink.value.trim())}" target="_blank"><img src="${esc(els.surveyImage.value.trim())}" class="fr-fic fr-dii"></a></div></div>\n\n<p><br></p>\n<p><br></p>\n<p><br></p>`;
-  els.resultHtml.value=out;els.copyBtn.disabled=false;els.downloadBtn.disabled=false;render(groups,thumbs);
-  const diff=groups.length-thumbs.length;
-  if(diff===0){show('good',`콘텐츠 ${groups.length}개와 썸네일 ${thumbs.length}개가 모두 정확히 매칭됐습니다.`);setMetrics(groups.length,thumbs.length,'정상','good')}
-  else if(diff>0){show('warn',`콘텐츠는 ${groups.length}개인데 썸네일은 ${thumbs.length}개입니다.<br>부족한 ${diff}개 콘텐츠는 DM 이미지를 임시로 사용했습니다.`);setMetrics(groups.length,thumbs.length,'확인 필요','warn')}
-  else{show('warn',`콘텐츠는 ${groups.length}개인데 썸네일은 ${thumbs.length}개입니다.<br>뒤쪽 ${Math.abs(diff)}개 썸네일은 사용되지 않았습니다.`);setMetrics(groups.length,thumbs.length,'확인 필요','warn')}
+  els.resultHtml.value=out;els.copyBtn.disabled=false;els.downloadBtn.disabled=false;render(newCover,groups);
+  show('good',`맨 앞 표지만 새 주소로 교체했습니다.<br>콘텐츠 ${groups.length}개 이미지와 링크는 DM HTML 내용을 그대로 사용했습니다.`);
+  setMetrics(groups.length,1,'정상','good');
 }
 async function readFile(file){if(!file)return;const text=await file.text();els.sourceHtml.value=text;currentFileName=file.name;els.fileNameLabel.textContent=file.name;show('good',file.name+' 파일을 불러왔습니다.')}
 async function copy(){try{await navigator.clipboard.writeText(els.resultHtml.value)}catch(e){els.resultHtml.select();document.execCommand('copy')}show('good','완성된 HTML 전체를 복사했습니다.')}
 function download(){const blob=new Blob([els.resultHtml.value],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='sellog_partnercenter.html';a.click();URL.revokeObjectURL(url)}
-function clearAll(){els.sourceHtml.value='';els.thumbnailUrls.value='';els.resultHtml.value='';els.preview.innerHTML='<div class="empty">DM HTML과 썸네일 주소를 넣은 뒤<br><strong>자동 생성</strong>을 눌러주세요.</div>';els.fileNameLabel.textContent='파일 없음';els.copyBtn.disabled=true;els.downloadBtn.disabled=true;els.thumbCount.textContent='입력 썸네일 0개';setMetrics(0,0,'대기');els.message.className='message'}
+function clearAll(){els.sourceHtml.value='';els.thumbnailUrls.value='';els.resultHtml.value='';els.preview.innerHTML='<div class="empty">DM HTML과 표지 주소를 넣은 뒤<br><strong>자동 생성</strong>을 눌러주세요.</div>';els.fileNameLabel.textContent='파일 없음';els.copyBtn.disabled=true;els.downloadBtn.disabled=true;els.thumbCount.textContent='표지 주소 미입력';setMetrics(0,0,'대기');els.message.className='message'}
 function loadSettings(){const s=JSON.parse(localStorage.getItem('sellogSettings')||'{}');Object.keys(DEFAULTS).forEach(k=>els[k].value=s[k]||DEFAULTS[k])}
 function saveSettings(){const s={};Object.keys(DEFAULTS).forEach(k=>s[k]=els[k].value.trim());localStorage.setItem('sellogSettings',JSON.stringify(s));show('good','고정 영역 설정을 저장했습니다.')}
 function resetSettings(){Object.keys(DEFAULTS).forEach(k=>els[k].value=DEFAULTS[k]);localStorage.removeItem('sellogSettings');show('good','기본 설정으로 복원했습니다.')}
-els.thumbnailUrls.addEventListener('input',()=>els.thumbCount.textContent='입력 썸네일 '+thumbList().length+'개');
+els.thumbnailUrls.addEventListener('input',()=>els.thumbCount.textContent=coverUrl()?'표지 주소 입력 완료':'표지 주소 미입력');
 ['dragenter','dragover'].forEach(n=>els.dropzone.addEventListener(n,e=>{e.preventDefault();els.dropzone.classList.add('drag')}));
 ['dragleave','drop'].forEach(n=>els.dropzone.addEventListener(n,e=>{e.preventDefault();els.dropzone.classList.remove('drag')}));
 els.dropzone.addEventListener('drop',e=>readFile(e.dataTransfer.files[0]));els.fileInput.addEventListener('change',e=>readFile(e.target.files[0]));
